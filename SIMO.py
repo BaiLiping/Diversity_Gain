@@ -10,7 +10,7 @@ def BERRayFadingChannel_Diversity():
 
     nRx = [1, 2]
     Eb_N0_dB = np.arange(-10, 36)  # multiple Eb/N0 values
-    nErr = np.zeros((len(nRx), len(Eb_N0_dB)))  # Error counter
+    nErr = np.zeros((len(nRx)+1, len(Eb_N0_dB)))  # Error counter
 
     for jj, n_rx in enumerate(nRx):
         for ii, eb_n0_dB in enumerate(Eb_N0_dB):
@@ -32,35 +32,39 @@ def BERRayFadingChannel_Diversity():
             hSel = h[ind, np.arange(N)]
 
             # Equalization with the selected rx chain
-            yHat = ySel / hSel
+            yHat_max = ySel / hSel
 
             # Removing the phase of the channel
-            #yHat = y * np.exp(-1j * np.angle(h))
+            yHat_equal = y * np.exp(-1j * np.angle(h))
             
             # Adding values from all the receive chains
-            #yHat = np.sum(yHat, axis=0)
+            yHat_equal = np.sum(yHat_equal, axis=0)
 
             # Receiver - hard decision decoding
-            ipHat = np.real(yHat) > 0
+            ipHat_max = np.real(yHat_max) > 0
+            ipHat_equal = np.real(yHat_equal) > 0
 
             # Counting the errors
-            nErr[jj, ii] = np.count_nonzero(ip ^ ipHat)  # Corrected line
-
+            nErr[jj, ii] = np.count_nonzero(ip ^ ipHat_max)  # Corrected line
+            nErr[jj+1, ii] = np.count_nonzero(ip ^ ipHat_equal)  # Corrected line
+        
     simBer = nErr / N  # Simulated BER
 
     # Theoretical BER
     EbN0Lin = 10.0**(Eb_N0_dB / 10.0)
     theoryBer_nRx1 = 0.5 * (1 - (1 + 1.0 / EbN0Lin)**(-0.5))
-    theoryBer_nRx2 = 0.5 * (1 - 2 * (1 + 1.0 / EbN0Lin)**(-0.5) + (1 + 2.0 / EbN0Lin)**(-0.5))
-    #theoryBer_nRx2 = 0.5 * (1 - np.sqrt(EbN0Lin * (EbN0Lin + 2)) / (EbN0Lin + 1))
+    theoryBer_nRx2_max = 0.5 * (1 - 2 * (1 + 1.0 / EbN0Lin)**(-0.5) + (1 + 2.0 / EbN0Lin)**(-0.5))
+    theoryBer_nRx2_equal = 0.5 * (1 - np.sqrt(EbN0Lin * (EbN0Lin + 2)) / (EbN0Lin + 1))
     #p = 1/2 - 1/2 * (1 + 1.0 / EbN0Lin)**(-0.5)
     #theoryBer_nRx2 = p**2 * (1 + 2 * (1 - p))
     # Plotting
     plt.figure()
     plt.semilogy(Eb_N0_dB, theoryBer_nRx1, 'bp-', linewidth=2, label='nRx=1 (theory)')
     plt.semilogy(Eb_N0_dB, simBer[0, :], linewidth=2, label='nRx=1 (sim)')
-    plt.semilogy(Eb_N0_dB, theoryBer_nRx2, 'rd-', linewidth=2, label='nRx=2 (theory)')
-    plt.semilogy(Eb_N0_dB, simBer[1, :], linewidth=2, label='nRx=2 (sim)')
+    plt.semilogy(Eb_N0_dB, theoryBer_nRx2_max, 'rd-', linewidth=2, label='nRx=2 (theory selection)')
+    plt.semilogy(Eb_N0_dB, simBer[1, :], linewidth=2, label='nRx=2 (sim selection)')
+    plt.semilogy(Eb_N0_dB, theoryBer_nRx2_equal, 'rd-', linewidth=2, label='nRx=2 (theory equal)')
+    plt.semilogy(Eb_N0_dB, simBer[2, :], linewidth=2, label='nRx=2 (sim equal)')
     
     plt.axis([0, 35, 1e-5, 0.5])
     plt.grid(True)
