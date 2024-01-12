@@ -27,8 +27,8 @@ rayleigh_pdf = (rayleigh_x / sigma**2) * np.exp(-rayleigh_x**2 / (2 * sigma**2))
 plt.plot(rayleigh_x, rayleigh_pdf, 'r-', label='Rayleigh PDF')
 
 # Final plot formatting
-plt.xlabel('|g|')
-plt.ylabel('Probability Mass Function')
+plt.xlabel('|g|', fontsize=14)
+plt.ylabel('Probability Mass Function', fontsize=14)
 plt.legend()
 plt.grid(True)
 plt.show()
