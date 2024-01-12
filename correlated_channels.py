@@ -45,12 +45,19 @@ for SNR_Value in SNR_Range:
 plt.figure()
 plt.semilogy(SNR_Range, P_out_non_cor, linewidth=2, label='i.i.d Rayleigh Channels')
 plt.semilogy(SNR_Range, P_out_cor, linewidth=2, label='Correlated Rayleigh Channels')
-arrow_properties = dict(facecolor='black', shrink=0.05)
-plt.annotate('Downward shift', xy=(5, P_out_cor[30]), xytext=(10, 10**(-1)),arrowprops=arrow_properties, fontsize=20)
 # Function to find the closest index to a given SNR value in the SNR_Range array
 def find_closest_index(value, array):
     index = np.abs(array - value).argmin()
     return index
+
+# Adjust arrow and text annotation to the center of the plot
+center_SNR = 10
+center_Pout_cor = 0.1
+
+arrow_properties = dict(facecolor='black', shrink=0.01)
+plt.annotate('correlation causes upward shift', xy=(center_SNR, center_Pout_cor),
+             xytext=(center_SNR - 10, center_Pout_cor / 10), arrowprops=arrow_properties, fontsize=12)
+
 
 # Get the index for SNR = 5dB and SNR = 4.5dB
 index_5dB = find_closest_index(5, SNR_Range)

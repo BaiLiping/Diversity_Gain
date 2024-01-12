@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-SNR_Range = np.arange(-10, 30.1, 0.1)
+SNR_Range = np.arange(-10, 20, 0.5)
 N_MC_Iteration = 100000
 R=1
 beta=1
@@ -30,8 +30,8 @@ for SNR_Value in SNR_Range:
 
 # plot
 plt.figure()
-plt.semilogy(SNR_Range, P_out, linewidth=4, label='Simulation', )
-plt.semilogy(SNR_Range, P_out_theory, linewidth=4, label='Theory')
+plt.semilogy(SNR_Range, P_out, linewidth=2, label='Simulation', )
+plt.semilogy(SNR_Range, P_out_theory, linewidth=2, linestyle='--', label='Theory')
 plt.grid(True)
 plt.legend(fontsize=14)
 plt.xlabel('SNR, dB', fontsize=14)

@@ -1,30 +1,38 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.stats import rayleigh
 
 # Constants for simulation
 E_signal = 1  # Energy of the signal
 N0 = 1  # Noise power spectral density
-N_MC_Iteration = 10000  # Number of Monte Carlo iterations/samples
-non_line_of_sight_path_counts = [1, 2, 4]  # Example path counts
+N_MC_Iteration = 100000  # Number of Monte Carlo iterations/samples
+L_values = [1, 2, 3, 4]  # Number of multipath components
 
-# Simulation and plotting
-plt.figure(figsize=(12, 7))
+# Define the bins for the histogram
+max_snr = 5
+bins = np.linspace(0, max_snr, 1000)  # Creates bins from 0 to max_snr
 
-for M in non_line_of_sight_path_counts:
-    # Simulate the channel
-    h = np.sqrt(E_signal / (2 * M)) * (np.random.randn(M, N_MC_Iteration) + 1j * np.random.randn(M, N_MC_Iteration))
-    # Simulate the noise
-    noise = np.sqrt(N0 / 2) * (np.random.randn(M, N_MC_Iteration) + 1j * np.random.randn(M, N_MC_Iteration))
-    # Calculate SNR using MRC
-    SNR_MRC = np.sum(np.abs(h)**2, axis=0) / N0
-    # Plot histogram
-    plt.hist(SNR_MRC, bins=200, density=True, alpha=0.5, label=f'L={M}')
+# Simulation
+plt.figure()
 
-# Overlay the Rayleigh PDF
-sigma = np.sqrt(E_signal / 2)  # Scale parameter for Rayleigh distribution
-rayleigh_x = np.linspace(0, 5 * sigma, 1000)
-rayleigh_pdf = (rayleigh_x / sigma**2) * np.exp(-rayleigh_x**2 / (2 * sigma**2))
-plt.plot(rayleigh_x, rayleigh_pdf, 'r-', label='Rayleigh PDF')
+for L in L_values:
+    # Simulate L independent Rayleigh fading paths and sum their powers
+    g = np.sqrt(E_signal / (2 * L)) * (np.random.randn(L, N_MC_Iteration) + 1j * np.random.randn(L, N_MC_Iteration))
+    total_power = np.sum(np.abs(g)**2, axis=0)
+
+    # Calculate histogram
+    counts, bin_edges = np.histogram(total_power, bins=bins)
+    bin_widths = np.diff(bin_edges)
+    pdf = counts / (N_MC_Iteration*bin_widths)  # Scale counts to get density
+
+    # Plot the manually scaled histogram (PDF)
+    plt.bar(bin_edges[:-1], pdf, width=bin_widths, alpha=0.5, label=f'L={L}')
+
+# Overlay the theoretical Rayleigh PDF for a large L as a reference
+beta = 1  # Assuming beta is the total signal energy
+rayleigh_x = np.linspace(0, max_snr, 1000)
+rayleigh_pdf = rayleigh.pdf(rayleigh_x, scale=np.sqrt(beta / 2))
+plt.plot(rayleigh_x, rayleigh_pdf, 'k-', label='Theoretical Rayleigh PDF')
 
 # Final plot formatting
 plt.xlabel('|g|', fontsize=14)
